@@ -1,0 +1,170 @@
+openapi: "3.0.2"
+
+info:
+  title: API системы аренды земельных участков
+  description: API для управления арендой земельных участков, заявками и договорами
+  version: 1.0.0
+  contact:
+    name: Техническая поддержка
+    email: support@landrental.com
+    url: https://landrental.com/support
+  license:
+    name: Проприетарная лицензия
+    url: https://landrental.com/license
+
+servers:
+  - url: https://api.landrental.com/data/1.0/
+    description: Продакшен сервер
+  - url: https://staging-api.landrental.com/data/1.0/
+    description: Тестовый сервер
+  - url: https://dev-api.landrental.com/data/1.0/
+    description: Сервер разработки
+
+paths:
+  /plots:
+    get:
+      tags:
+        - Участки
+      summary: Получить список всех участков
+      description: Возвращает полный список земельных участков
+      operationId: getPlots
+      security:
+        - BearerAuth: []
+      externalDocs:
+        description: Подробнее о работе с участками
+        url: https://docs.landrental.com/api/v1/plots
+      responses:
+        '200':
+          description: Успешный ответ со списком участков
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Plot'
+              examples:
+                success:
+                  value:
+                    - id: 1
+                      owner_id: 5
+                      renter_id: null
+                      price_item_id: 12
+                      address: "ул. Ленина, д. 10"
+                      area: 150.5
+                      description: "Земельный участок под сельское хозяйство"
+                    - id: 2
+                      owner_id: 3
+                      renter_id: 7
+                      price_item_id: 15
+                      address: "ул. Центральная, д. 25"
+                      area: 200.0
+                      description: "Участок под строительство"
+        '400':
+          description: Неверные параметры запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Plot:
+      type: object
+      required:
+        - id
+        - owner_id
+        - price_item_id
+        - address
+        - area
+        - description
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Уникальный идентификатор участка
+          example: 1
+        owner_id:
+          type: integer
+          format: int64
+          description: Идентификатор владельца участка
+          example: 5
+        renter_id:
+          type: integer
+          format: int64
+          nullable: true
+          description: Идентификатор текущего арендатора
+          example: 3
+        price_item_id:
+          type: integer
+          format: int64
+          description: Идентификатор строки прейскуранта
+          example: 12
+        address:
+          type: string
+          description: Физический адрес участка
+          example: "ул. Ленина, д. 10"
+          maxLength: 255
+        area:
+          type: number
+          format: float
+          description: Площадь участка в квадратных метрах
+          example: 150.5
+          minimum: 0
+        description:
+          type: string
+          description: Детальное описание участка
+          example: "Земельный участок под сельское хозяйство"
+          maxLength: 1000
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Код ошибки
+          example: "INTERNAL_SERVER_ERROR"
+        message:
+          type: string
+          description: Сообщение об ошибке
+          example: "Произошла внутренняя ошибка сервера"
+        details:
+          type: string
+          description: Детальная информация об ошибке
+          example: "Database connection failed"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT токен авторизации
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Участки
+    description: Операции с земельными участками
+  - name: Заявки
+    description: Управление заявками на аренду
+  - name: Договоры
+    description: Операции с договорами аренды
+  - name: Пользователи
+    description: Управление пользователями и профилями
+  - name: Прейскурант
+    description: Управление прейскурантом
+  - name: Строка прейскуранта
+    description: Управление строкой прейскуранта
+
+externalDocs:
+  description: Полная документация по API
+  url: https://docs.rent.com/api/v1
