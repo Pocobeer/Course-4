@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ru">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Сканер</title>
+    <link type="image/x-icon" href="assets/favicon.png" rel="shortcut icon">
+    <link href="libs/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="libs/codemirror/codemirror.min.css" rel="stylesheet">
+    <link href="libs/codemirror/dark.css" rel="stylesheet">
+    <link href="libs/codemirror/light.css" rel="stylesheet">
+    <link href="libs/codemirror/simplescrollbars.css" rel="stylesheet">
+    <link href="libs/overlayscrollbars/overlayscrollbars.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <script src="libs/split.min.js"></script>
+    <script src="libs/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="libs/codemirror/codemirror.min.js"></script>
+    <script src="libs/codemirror/simplescrollbars.js"></script>
+    <script src="libs/overlayscrollbars/overlayscrollbars.min.js"></script>
+    <script src="settings.js" defer></script>
+    <script src="utils.js" defer></script>
+    <script src="scanner.js" defer></script>
+    <script src="SLR_Table.js" defer></script>
+    <script src="index.js" defer></script>
+    <script src="translator.js" defer></script>
+</head>
+
+<body>
+    <div class="container-fluid px-2 vh-100">
+        <div class="d-flex flex-column">
+            <div class="pt-2">
+                <div class="d-flex gap-2">
+                    <div class="dropdown transparent" id="file-dropdown">
+                        <button class="btn dropdown-toggle px-2" data-bs-toggle="dropdown" type="button"
+                            aria-expanded="false">
+                            <span class="icon align-text-top me-1">description</span>Файл
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li role="button">
+                                <div class="file-input-group input-group px-3 my-2" style="width: 21rem">
+                                    <label class="input-group-text" for="code-input" role="button">Текст программы</label>
+                                    <input class="form-control" id="code-input" type="file">
+                                </div>
+                            </li>
+                            <li role="button">
+                                <div class="file-input-group input-group px-3 my-2" style="width: 21rem">
+                                    <label class="input-group-text" for="xml-input" role="button">LR-таблица</label>
+                                    <input class="form-control" id="xml-input" type="file">
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="flex-grow-1">
+                        <button class="btn transparent border-0 px-2 py-1" id="translate">
+                            <span class="icon align-text-top me-1">manufacturing</span>Транслировать
+                        </button>
+                    </div>
+                    <button title="Настройки" class="btn transparent border-0 px-2 py-0 me-2" data-bs-target="#settings"
+                        data-bs-toggle="modal" type="button">
+                        <span class="icon align-text-top">settings</span>
+                    </button>
+                    <div class="modal" id="settings" aria-hidden="true" aria-labelledby="settingsLabel" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="settingsLabel">Настройки</h1>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="settingsForm">
+                                        <div class="form-group">
+                                            <h5>Тема</h5>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" id="system" name="theme" type="radio" value="system">
+                                                <label class="form-check-label" for="system">Системная</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" id="light" name="theme" type="radio" value="light">
+                                                <label class="form-check-label" for="light">Светлая</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" id="dark" name="theme" type="radio"
+                                                    value="dark">
+                                                <label class="form-check-label" for="dark">Темная</label>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="form-group">
+                                            <h5>Перенос строки</h5>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" id="crlf" name="newline" type="radio" value="crlf">
+                                                <label class="form-check-label" for="crlf">CRLF</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" id="lf" name="newline" type="radio" value="lf">
+                                                <label class="form-check-label" for="lf">LF</label>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn" data-bs-dismiss="modal">Закрыть</button>
+                                    <button class="btn" id="save-settings" data-bs-dismiss="modal">Сохранить</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid">
+                <div class="row" style="flex-wrap: nowrap; margin-right: 0">
+                    <fieldset class="col me-1 px-2 pb-2 h-100 shadow-sm" id="left-fieldset">
+                        <legend class="float-none w-auto fs-6 mb-1 px-1">Текст программы</legend>
+                        <textarea id="left-editor"></textarea>
+                    </fieldset>
+                    <fieldset class="col mx-1 px-2 pb-2 shadow-sm" id="middle-fieldset">
+                        <legend class="float-none w-auto fs-6 mb-1 px-1">Результат</legend>
+                        <textarea id="middle-editor"></textarea>
+                    </fieldset>
+                    <fieldset class="col mx-1 me-3 px-2 pb-2 shadow-sm" id="right-fieldset">
+                        <legend class="float-none w-auto fs-6 mb-1 px-1">Память</legend>
+                        <textarea id="right-editor"></textarea>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="font-monospace ms-2" style="font-size: 0.9rem">
+                Строка <span id="line">1</span>, столбец <span id="column">1</span>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
