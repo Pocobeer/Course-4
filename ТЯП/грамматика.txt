@@ -1,0 +1,25 @@
+S = "prog" "id" {A1} ";" Block "eof".
+Block = "var" LstVar "start" LstStmt "stop".
+LstVar = DeclVar ";" A.
+A = | DeclVar ";" A.
+DeclVar = "id" {A2} LstId {A3}.
+LstId = "," "id" {A2} LstId {A4} | ":" TypeSpec {A5}.
+TypeSpec = "integer" | "real" | "string" | "bool" | "array" "[" "num_int" "]" "of" TypeSpec.
+LstStmt = Stmt ";" B.
+B = | Stmt ";" B.
+Stmt = "id" {A6} AssignmentTarget "ass" Expr {A7} | "repeat" LstStmt "until" LogicalExpr.
+AssignmentTarget = | "[" Expr "]".
+Expr = SimpleExpr X.
+X = | "||" {A8} SimpleExpr {A9} X.
+SimpleExpr = Term Y.
+Y = | "+" | "-" {A10} Term {A11} Y.
+Term = Factor Z.
+Z = "*" | "/" {A12} Factor {A13} Z.
+Factor = "num_real" {A14} | "num_int" {A15} | "id" {A16} FactorTail | "(" LogicalExpr ")" | "string_literal" {A17} | "bool_literal" {A18}.
+FactorTail = | "[" Expr "]" | "(" Args ")".
+Args = Expr ArgsTail | .
+ArgsTail = | "," Expr ArgsTail.
+LogicalExpr = SimpleLogicalExpr L.
+L = | RelOp SimpleLogicalExpr L.
+RelOp = ">" {A19} | ">=" {A20}.
+SimpleLogicalExpr = Factor.!
