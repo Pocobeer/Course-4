@@ -1078,10 +1078,11 @@ router.get('/:id/payments', authenticate, async (req, res) => {
  *       404:
  *         description: Договор не найден
  */
+// src/routes/contractRoutes.js - исправленный метод POST /api/contracts/{id}/payments
 router.post('/:id/payments', authenticate, async (req, res) => {
     try {
         const { id } = req.params;
-        const { amount, payment_date, description } = req.body;
+        const { amount, payment_date } = req.body; // Убрали description
         const user = req.user;
 
         // Проверка обязательных полей
@@ -1133,15 +1134,15 @@ router.post('/:id/payments', authenticate, async (req, res) => {
             });
         }
 
-        // Создаем платеж
+        // Создаем платеж БЕЗ описания
         const paymentResult = await db.run(
             `
             INSERT INTO payments (
                 contract_id, amount, payment_date, 
-                description, status, created_at
-            ) VALUES (?, ?, ?, ?, 'pending', CURRENT_TIMESTAMP)
+                status, created_at
+            ) VALUES (?, ?, ?, 'pending', CURRENT_TIMESTAMP)
             `,
-            [id, amount, payment_date, description || null]
+            [id, amount, payment_date] // Убрали description
         );
 
         const newPayment = await db.get('SELECT * FROM payments WHERE id = ?', [

@@ -161,9 +161,20 @@ router.get('/', async (req, res) => {
  */
 router.get('/:id', async (req, res) => {
     try {
-        const plot = await db.get('SELECT * FROM plots WHERE id = ?', [
-            req.params.id,
-        ]);
+        const plot = await db.get(
+            `
+            SELECT 
+                p.*,
+                u.name as owner_name,
+                u.phone as owner_phone,
+                pi.price_per_day
+            FROM plots p
+            LEFT JOIN users u ON p.owner_id = u.id
+            LEFT JOIN price_items pi ON p.price_item_id = pi.id
+            WHERE p.id = ?
+        `,
+            [req.params.id]
+        );
 
         if (!plot) {
             return res.status(404).json({ error: 'Plot not found' });

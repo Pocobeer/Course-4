@@ -9,7 +9,7 @@ const app = express();
 const PORT = process.env.PORT;
 
 const corsOptions = {
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000', 'http://localhost:5173'],
     optionsSuccessStatus: 200,
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -59,7 +59,7 @@ app.use('/api/auth', require('./src/routes/authRoutes'));
 app.use('/api/plots', require('./src/routes/plotRoutes'));
 app.use('/api/contracts', require('./src/routes/contractRoutes'));
 app.use('/api/applications', require('./src/routes/applicationRoutes'));
-// app.use('/api/profile', require('./src/routes/profileRoutes'));
+app.use('/api/profile', require('./src/routes/profileRoutes'));
 
 app.get('/', (req, res) => {
     res.json({

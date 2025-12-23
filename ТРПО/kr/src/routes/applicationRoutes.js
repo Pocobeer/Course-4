@@ -433,4 +433,101 @@ router.put(
     }
 );
 
+/**
+ * @swagger
+ * /api/applications/{id}/cancel:
+ *   put:
+ *     summary: Отменить заявку (арендатор)
+ *     tags: [Заявки]
+ *     description: Отмена заявки на аренду участка арендатором
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Заявка отменена
+ *       400:
+ *         description: Невозможно отменить заявку
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         description: Недостаточно прав
+ *       404:
+ *         description: Заявка не найдена
+ */
+router.put(
+    '/:id/cancel',
+    authenticate,
+    authorize(['renter']),
+    async (req, res) => {
+        try {
+            const { id } = req.params;
+            const user = req.user;
+
+            // Получение заявки с проверкой прав
+            const application = await db.get(
+                `
+                SELECT a.* 
+                FROM applications a
+                WHERE a.id = ?
+            `,
+                [id]
+            );
+
+            if (!application) {
+                return res.status(404).json({
+                    error: 'Application not found',
+                    message: 'Заявка с указанным ID не существует',
+                });
+            }
+
+            // Проверка прав (только создатель заявки может отменить)
+            if (application.renter_id !== user.id) {
+                return res.status(403).json({
+                    error: 'Forbidden',
+                    message: 'Вы не являетесь создателем этой заявки',
+                });
+            }
+
+            // Проверка статуса (можно отменить только pending)
+            if (application.status !== 'pending') {
+                return res.status(400).json({
+                    error: 'Invalid application status',
+                    message:
+                        'Можно отменить только заявку в статусе "на рассмотрении"',
+                    currentStatus: application.status,
+                    allowedStatuses: ['pending'],
+                });
+            }
+
+            // Обновление статуса
+            await db.run('UPDATE applications SET status = ? WHERE id = ?', [
+                'cancelled',
+                id,
+            ]);
+
+            const updatedApplication = await db.get(
+                'SELECT * FROM applications WHERE id = ?',
+                [id]
+            );
+
+            res.json({
+                message: 'Заявка успешно отменена',
+                application: updatedApplication,
+            });
+        } catch (error) {
+            console.error('Ошибка при отмене заявки:', error);
+            res.status(500).json({
+                error: 'Internal server error',
+                message: error.message,
+            });
+        }
+    }
+);
+
 module.exports = router;
