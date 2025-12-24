@@ -91,13 +91,6 @@ export function Login({ onLogin }: LoginProps) {
                         </div>
                     </CardContent>
                     <CardFooter className='flex justify-between'>
-                        <Button
-                            variant='outline'
-                            type='button'
-                            disabled={loading}
-                        >
-                            Демо
-                        </Button>
                         <Button type='submit' disabled={loading}>
                             {loading ? 'Вход...' : 'Войти'}
                         </Button>

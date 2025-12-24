@@ -68,6 +68,7 @@ export interface RentalApplication {
         | 'rejected'
         | 'active'
         | 'completed'
+        | 'contract_created'
         | 'cancelled';
     created_at: string;
     rejection_reason: string | null;
@@ -117,6 +118,69 @@ export interface CreateApplicationResponse {
         created_at: string;
         rejection_reason: string | null;
     };
+}
+
+export interface Contract {
+    id: number;
+    application_id: number;
+    plot_id: number;
+    renter_id: number;
+    start_date: string;
+    end_date: string;
+    price_per_day: number;
+    status: string;
+    signed_at?: string;
+    termination_reason?: string;
+    termination_date?: string;
+    created_at: string;
+}
+
+export interface CreateContractRequest {
+    application_id: number;
+}
+
+export interface CreateContractResponse {
+    message: string;
+    contract: Contract;
+}
+
+export interface ContractDetails {
+    id: number;
+    application_id: number;
+    plot_id: number;
+    renter_id: number;
+    start_date: string;
+    end_date: string;
+    price_per_day: number;
+    status: 'draft' | 'active' | 'completed' | 'terminated';
+    signed_at?: string;
+    termination_reason?: string;
+    termination_date?: string;
+    created_at: string;
+    plot_address: string;
+    plot_area: number;
+    renter_name: string;
+    renter_phone: string;
+    renter_email?: string;
+    owner_name: string;
+    owner_phone: string;
+    owner_email?: string;
+    total_days?: number;
+    total_amount?: number;
+}
+
+export interface ContractsResponse {
+    data: ContractDetails[];
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        pages: number;
+    };
+}
+
+export interface SignContractRequest {
+    signed_at?: string;
 }
 
 const api = axios.create({
@@ -209,6 +273,45 @@ export const rejectApplication = async (
 
 export const cancelApplication = async (id: number): Promise<void> => {
     const response = await api.put(`/applications/${id}/cancel`);
+    return response.data;
+};
+
+export const createContract = async (
+    data: CreateContractRequest
+): Promise<CreateContractResponse> => {
+    const response = await api.post<CreateContractResponse>('/contracts', data);
+    return response.data;
+};
+
+export const fetchUserContracts = async (
+    page: number = 1,
+    limit: number = 10
+): Promise<ContractsResponse> => {
+    const params = { page, limit };
+    const response = await api.get<ContractsResponse>('/contracts', { params });
+    return response.data;
+};
+
+export const signContract = async (
+    contractId: number,
+    data: SignContractRequest
+): Promise<{ message: string; contract: ContractDetails }> => {
+    const response = await api.put(`/contracts/${contractId}/sign`, data);
+    return response.data;
+};
+
+export const completeContract = async (
+    contractId: number
+): Promise<{ message: string; contract: ContractDetails }> => {
+    const response = await api.put(`/contracts/${contractId}/complete`);
+    return response.data;
+};
+
+export const terminateContract = async (
+    contractId: number,
+    data: { termination_reason: string; termination_date?: string }
+): Promise<{ message: string; contract: ContractDetails }> => {
+    const response = await api.put(`/contracts/${contractId}/terminate`, data);
     return response.data;
 };
 
