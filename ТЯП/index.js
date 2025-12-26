@@ -1,35 +1,41 @@
-// index.js
+const templateText = `a, b: Float; c: String; s,i,x: Int;
+struct R {
+  a, b: Float;
+  c: Boolean;
+}
 
-const templateText =
-`prog Test;
-var
-real x, a, b, c;
-real [3] array;
-integer i;
-string s;
-bool m;
-start
-    x = 1.5;
-    c = 3.14e-10;
-    s = "aaaa";
-    m = False;
-    i = 0;
+r: R;
+flag, b1, b2, b3, b4: Boolean;
 
-    repeat
-        array[i] = c / (i + 1) * x + i;
+begin
+    x = 4;
+    r.a = 1.1;
+    r.b = 2.2;
+    s = 10; i = 0;
+    
+    b1 = true; b2 = false; b3 = false; b4 = true;
+    flag = ! ((b1 || b2) && ! (b3 && b4));
+    
+    repeat {
         i = i + 1;
-    until (i > 2 || i >= 100);
+        s = 33 - ((55 / 5) * (x * 2));
+    } until (i < 100)
 
-stop
-endProg`.replace(/\t/g, '\t').replace(/\n/g, '\n');
+end
+`
+    .replace(/\t/g, '\t')
+    .replace(/\n/g, '\n');
 
-let xmlString = tmpXmlString; // Убедитесь, что tmpXmlString определена и содержит XML таблицу
+let xmlString = tmpXmlString;
 
-const leftEditor = CodeMirror.fromTextArea(document.getElementById('left-editor'), {
-    lineNumbers: true,
-    scrollbarStyle: 'overlay',
-    lineSeparator: '\n'
-});
+const leftEditor = CodeMirror.fromTextArea(
+    document.getElementById('left-editor'),
+    {
+        lineNumbers: true,
+        scrollbarStyle: 'overlay',
+        lineSeparator: '\n',
+    }
+);
 
 let settings = {};
 
@@ -47,12 +53,7 @@ window.onload = () => {
     leftEditor.setValue(templateText);
 
     fillTokenList(templateText);
-    try {
-        SUT();
-    } catch (e) {
-        console.error("Ошибка трансляции:", e);
-        drawMiddleEditor('Ошибка', `Ошибка выполнения: ${e.message}`);
-    }
+    SUT();
 };
 
 let middleFieldset = document.getElementById('middle-fieldset');
@@ -61,19 +62,19 @@ let rightFieldset = document.getElementById('right-fieldset');
 let middleEditor = createMiddleEditor();
 let rightEditor = createRightEditor();
 
-function createMiddleEditor () {
+function createMiddleEditor() {
     return CodeMirror.fromTextArea(middleFieldset.lastElementChild, {
         lineWrapping: true,
         mode: null,
-        scrollbarStyle: "overlay"
+        scrollbarStyle: 'overlay',
     });
 }
 
-function createRightEditor () {
+function createRightEditor() {
     return CodeMirror.fromTextArea(rightFieldset.lastElementChild, {
         lineWrapping: true,
         mode: null,
-        scrollbarStyle: "overlay"
+        scrollbarStyle: 'overlay',
     });
 }
 
@@ -127,12 +128,7 @@ function drawRightTable(legendName, columnNames, data) {
 
 document.getElementById('translate').addEventListener('click', () => {
     fillTokenList(leftEditor.getValue());
-    try {
-        SUT();
-    } catch (e) {
-        console.error("Ошибка трансляции:", e);
-        drawMiddleEditor('Ошибка', `Ошибка выполнения: ${e.message}`);
-    }
+    SUT();
 });
 
 // Отображение позиции курсора
@@ -155,18 +151,9 @@ document.getElementById('code-input').addEventListener('change', function () {
         if (text) {
             leftEditor.setValue(text);
             fillTokenList(text);
-            try {
-                SUT();
-            } catch (e) {
-                console.error("Ошибка трансляции:", e);
-                drawMiddleEditor('Ошибка', `Ошибка выполнения: ${e.message}`);
-            }
-        } else
-            drawMiddleEditor('Ошибка!', 'Пустой файл!');
-
+        } else drawMiddleEditor('Ошибка!', 'Пустой файл!');
     };
     reader.readAsText(file);
-
 });
 
 let currentXmlFileName;
@@ -179,11 +166,9 @@ document.getElementById('xml-input').addEventListener('change', function () {
         const text = e.target.result;
         if (text) {
             xmlString = text;
-        } else
-            drawMiddleEditor('Ошибка!', 'Пустой XML-файл!');
+        } else drawMiddleEditor('Ошибка!', 'Пустой XML-файл!');
     };
     reader.readAsText(file);
-
 });
 
 // ############################ Цветовая Схема #################################
@@ -191,13 +176,11 @@ document.getElementById('xml-input').addEventListener('change', function () {
 let prefersDark = matchMedia('(prefers-color-scheme: dark)');
 
 prefersDark.addEventListener('change', () => {
-    if (settings.theme === 'system')
-        applyTheme('system');
+    if (settings.theme === 'system') applyTheme('system');
 });
 
 function applyTheme(theme) {
-    if (theme === 'system')
-        theme = prefersDark.matches ? 'dark' : 'light';
+    if (theme === 'system') theme = prefersDark.matches ? 'dark' : 'light';
 
     document.documentElement.className = theme;
     leftEditor?.setOption('theme', theme);
@@ -209,16 +192,16 @@ function applyTheme(theme) {
 
 const GUTTER_SIZE = 8;
 
-const gutterStyle = dimension => ({
-  'flex-basis': `${GUTTER_SIZE}px`,
+const gutterStyle = (dimension) => ({
+    'flex-basis': `${GUTTER_SIZE}px`,
 });
 
 const elementStyle = (dimension, size) => ({
-  'flex-basis': `calc(${size}% - ${GUTTER_SIZE}px)`,
+    'flex-basis': `calc(${size}% - ${GUTTER_SIZE}px)`,
 });
 
 Split(['#left-fieldset', '#middle-fieldset', '#right-fieldset'], {
-  sizes: [30, 25, 45],
-  elementStyle,
-  gutterStyle
+    sizes: [30, 25, 45],
+    elementStyle,
+    gutterStyle,
 });

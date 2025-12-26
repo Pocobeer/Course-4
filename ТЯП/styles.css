@@ -115,11 +115,11 @@ body {
   color: var(--fg) !important;
 }
 
-fieldset {
+/* fieldset {
   border: 1px solid var(--border) !important;
   border-radius: .375rem;
   overflow: auto;
-}
+} */
 
 legend {
   white-space: nowrap;

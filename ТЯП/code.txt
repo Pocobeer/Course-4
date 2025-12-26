@@ -1,0 +1,24 @@
+a, b: Float; c: String; s,i,x: Int;
+struct R {
+  a, b: Float;
+  c: Boolean;
+}
+
+r: R;
+flag, b1, b2, b3, b4: Boolean;
+
+begin
+    x = 4;
+    r.a = 1.1;
+    r.b = 2.2;
+    s = 10; i = 0;
+    
+    b1 = true; b2 = false; b3 = false; b4 = true;
+    flag = ! ((b1 || b2) && ! (b3 && b4));
+    
+    repeat {
+        i = i + 1;
+        s = 33 - ((55 / 5) * (x * 2));
+    } until (i < 100)
+
+end
