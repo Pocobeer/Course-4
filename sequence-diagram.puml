@@ -1,0 +1,73 @@
+@startuml sequence_simple
+
+actor "Пользователь" as User
+participant "Веб-клиент\nReact SPA" as Client
+participant "Сервер API\nFastAPI" as Server
+participant "Бизнес-логика\nServices" as Service
+database "PostgreSQL\nБаза данных" as DB
+
+== Авторизация ==
+
+User -> Client : Вводит данные для входа
+Client -> Server : Отправляет запрос на логин
+Server -> Service : Вызывает функцию аутентификации
+Service -> DB : Проверяет наличие пользователя по email
+DB --> Service : Возвращает запись о пользователе
+Service -> Service : Сравнивает хэш пароля
+
+alt Пароль верный
+    Service -> Service : Создаёт JWT access-токен\n(30 минут) и refresh-токен (7 дней)
+    Service --> Server : Возвращает токены
+    Server --> Client : Отправляет токены клиенту
+    Client -> Client : Сохраняет токены в localStorage
+else Пароль неверный
+    Service --> Client : Возвращает ошибку 401\n"Неверные логин или пароль"
+end
+
+Client -> User : Перенаправляет на страницу сканирования
+
+== Проверка пакетов ==
+
+User -> Client : Вводит список пакетов для проверки
+Client -> Server : Отправляет запрос на проверку пакетов\nс X-API-Key заголовком
+
+alt Пакет не найден в репозитории
+    Service --> Client : Сообщает, что пакет не найден
+else Версия пакета не найдена
+    Service --> Client : Сообщает, что версия не найдена
+else Пакет и версия найдены
+    Service -> DB : Загружает известные уязвимости для пакета\nи сравнивает версии
+    
+    loop Для каждой уязвимости
+        alt Текущая версия >= уязвимой версии
+            Service --> Client : Добавляет CVE в результат как уязвимый
+        else
+            Service --> Client : Не добавляет (версия безопасна)
+        end
+    end
+
+end
+
+Client -> User : Отображает список уязвимых пакетов и найденные CVE
+
+== Автоматическое обновление токена ==
+
+note over Client, DB
+  Если access-токен истёк при запросе:
+  interceptor автоматически
+  вызывает refresh endpoint
+end note
+
+Client -> Service : Отправляет запрос на обновление токена\nс refresh-token
+Service -> Service : Проверяет валидность refresh-токена
+
+alt Refresh-токен невалиден или истёк
+    Service --> Client : Возвращает ошибку 401
+    Client -> Client : Удаляет все токены и перенаправляет на логин
+else Refresh успешный
+    Service -> Service : Создаёт новые пары токенов
+    Service --> Client : Отправляет новые токены
+    Client -> Client : Обновляет localStorage
+end
+
+@enduml

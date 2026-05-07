@@ -1,0 +1,44 @@
+@startuml architecture
+
+left to right direction
+
+component "Клиент" as Client {
+    [Веб-клиент\nReact SPA] as WebClient
+}
+
+package "Серверный контейнер (Docker)" {
+    
+    component "FastAPI Server" as Server {
+        
+        component "Routers\nМаршрутизация" as Routers
+        component "Services\nБизнес-логика" as Services
+        component "Models\nSQLModel ORM" as Models
+        
+        Routers -[hidden]-> Services
+        Services -[hidden]-> Models
+        
+    }
+    
+    database "PostgreSQL\nБаза данных" as Database
+    
+}
+
+WebClient --> Routers : HTTP Request
+Routers -> Services : Вызов сервиса
+Services -> Models : ORM Query
+Models -> Database : SQL Query
+
+note right of WebClient
+  Пользователь взаимодействует
+  с React SPA приложением
+end note
+
+note bottom of Database
+  Таблицы:
+  - vulnerability
+  - package, package_version
+  - user, api_key
+  - company, company_user
+end note
+
+@enduml

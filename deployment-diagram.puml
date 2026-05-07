@@ -1,0 +1,47 @@
+@startuml deployment
+
+skinparam componentStyle rectangle
+skinparam databaseStyle cylinder
+
+package "Клиент" {
+    [Веб-клиент\nReact SPA] as WebClient
+}
+
+package "Серверный контейнер\nDocker Compose" {
+    
+    package "FastAPI Server (Python)" as AppServer {
+        [Routers] as Routers
+        [Services] as Services
+        [Models\nSQLModel ORM] as Models
+    }
+    
+    database "PostgreSQL 17\nБаза данных" as DB
+    
+}
+
+WebClient --> Routers : HTTP Request
+Routers -> Services : Вызов сервиса
+Services -> Models : ORM Query
+Models -> DB : SQL Query
+
+note right of WebClient
+  Клиент взаимодействует
+  с сервером через REST API
+end note
+
+note bottom of AppServer
+  Архитектура бэкенда:
+  - Routers: маршрутизация запросов
+  - Services: бизнес-логика
+  - Models: SQLModel ORM слой
+end note
+
+note right of DB
+  Таблицы базы данных:
+  - vulnerability (CVE)
+  - package, package_version
+  - user, api_key
+  - company, company_user
+end note
+
+@enduml
